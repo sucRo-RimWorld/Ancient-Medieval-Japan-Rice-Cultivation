@@ -109,8 +109,7 @@ namespace AncientMedievalJapan.RiceCultivation
         {
             if (!CanPlaceRectangle(area)) return false;
             // PROTOTYPE ONLY. This work amount is NOT approved labor balance.
-            float work = area.Width * area.Height * 100f +
-                         (area.Width + area.Height) * 50f;
+            float work = PaddyWorkPrototype.Required(area);
             var plot = new PaddyPlot(nextId++, area, work);
             plots.Add(plot);
             byId.Add(plot.id, plot);
