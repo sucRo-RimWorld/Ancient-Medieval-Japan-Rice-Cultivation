@@ -24,10 +24,10 @@ namespace AncientMedievalJapan.RiceCultivation
         private static void InitMaterials()
         {
             if (water != null) return;
-            water = SolidColorMaterials.SimpleSolidColorMaterial(
-                new Color(0.30f, 0.48f, 0.53f, 0.24f));
-            bund = SolidColorMaterials.SimpleSolidColorMaterial(
-                new Color(0.35f, 0.26f, 0.16f, 0.88f));
+            water = SolidColorMaterials.NewSolidColorMaterial(
+                new Color(0.30f, 0.48f, 0.53f, 0.24f), ShaderDatabase.Transparent);
+            bund = SolidColorMaterials.NewSolidColorMaterial(
+                new Color(0.35f, 0.26f, 0.16f, 0.88f), ShaderDatabase.Transparent);
             water.renderQueue = 2402;
             bund.renderQueue = 2404;
         }
