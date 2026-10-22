@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <AMJR_CreateLabel>水田を造る</AMJR_CreateLabel>
+  <AMJR_CreateDesc>矩形範囲を指定します。ポーンが田面と畦を造成し、完成後は通常の栽培ゾーンを使用します。Waterworksの水源に接していれば自動で給水します。</AMJR_CreateDesc>
+  <AMJR_RemoveLabel>水田を撤去</AMJR_RemoveLabel>
+  <AMJR_RemoveDesc>水田区画と畦の表示だけを取り除き、元の土壌と栽培ゾーンは残します。</AMJR_RemoveDesc>
+  <AMJR_InvalidRectangle>耕作できる土壌で、重複のない完全な矩形を指定してください。</AMJR_InvalidRectangle>
+</LanguageData>
