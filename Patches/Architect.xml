@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Patch>
+  <Operation Class="PatchOperationAdd">
+    <xpath>Defs/DesignationCategoryDef[defName="Zone"]/specialDesignatorClasses</xpath>
+    <value>
+      <li>AncientMedievalJapan.RiceCultivation.Designator_CreatePaddy</li>
+      <li>AncientMedievalJapan.RiceCultivation.Designator_RemovePaddy</li>
+    </value>
+  </Operation>
+</Patch>
