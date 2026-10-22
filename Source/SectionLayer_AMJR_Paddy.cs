@@ -10,6 +10,7 @@ namespace AncientMedievalJapan.RiceCultivation
     {
         private static Material water;
         private static Material bund;
+        private static Material planned;
 
         public override bool Visible
         {
@@ -28,6 +29,9 @@ namespace AncientMedievalJapan.RiceCultivation
                 new Color(0.30f, 0.48f, 0.53f, 0.24f), ShaderDatabase.Transparent);
             bund = SolidColorMaterials.NewSolidColorMaterial(
                 new Color(0.35f, 0.26f, 0.16f, 0.88f), ShaderDatabase.Transparent);
+            planned = SolidColorMaterials.NewSolidColorMaterial(
+                new Color(0.69f, 0.55f, 0.35f, 0.17f), ShaderDatabase.Transparent);
+            planned.renderQueue = 2401;
             water.renderQueue = 2402;
             bund.renderQueue = 2404;
         }
@@ -42,7 +46,14 @@ namespace AncientMedievalJapan.RiceCultivation
             foreach (IntVec3 cell in section.CellRect)
             {
                 PaddyPlot plot = state.PlotAt(cell);
-                if (plot == null || !plot.complete) continue;
+                if (plot == null) continue;
+                if (!plot.complete)
+                {
+                    // Players must be able to see a designated field while a
+                    // pawn is still constructing it; no persistent marker Thing.
+                    Quad(GetSubMesh(planned), cell, 0f, 0f, 1f, 1f, y + 0.001f);
+                    continue;
+                }
 
                 if (state.IsWet(plot))
                     Quad(GetSubMesh(water), cell, 0f, 0f, 1f, 1f, y + 0.001f);
