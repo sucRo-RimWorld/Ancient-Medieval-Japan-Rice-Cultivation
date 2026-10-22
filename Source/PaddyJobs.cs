@@ -80,8 +80,7 @@ namespace AncientMedievalJapan.RiceCultivation
             {
                 PaddyPlot plot = Manager.PlotById(job.count);
                 if (plot == null) return 1f;
-                float total = plot.Bounds.Width * plot.Bounds.Height * 100f +
-                              (plot.Bounds.Width + plot.Bounds.Height) * 50f;
+                float total = PaddyWorkPrototype.Required(plot.Bounds);
                 return total <= 0f ? 1f :
                     UnityEngine.Mathf.Clamp01(1f - plot.workLeft / total);
             }, interpolateBetweenActorAndTarget: true);
