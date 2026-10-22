@@ -1,29 +1,90 @@
-# AMJ Rice Cultivation — B construction / initial source design
+# Rice Cultivation / 水田稲作 — 造成・水管理の設計草案
 
-Owner design migrated from [Project RicePaddyDesign §§1–5](https://github.com/sucRo-RimWorld/Ancient-Medieval-Japan-Project/blob/main/Docs/Research/RicePaddyDesign-2026-10-21.md). Project historical comparisons are not an alternate authority.
+**作成:** 2026-10-21 ／ **移管:** 2026-10-22 ／ **管理:** Ancient-Medieval-Japan-Rice-Cultivation  
+**状態:** 作者承認は§1（B案を含む）。§2〜4は初版推奨技術仕様。**このリポジトリで実装進行中。ビルド・実ゲーム検証・公開は未確認。** 旧比較資料§6〜13は[Project原資料](https://github.com/sucRo-RimWorld/Ancient-Medieval-Japan-Project/blob/main/Docs/Research/RicePaddyDesign-2026-10-21.md)を履歴参照。  
+**原則:** [Project Architecture](https://github.com/sucRo-RimWorld/Ancient-Medieval-Japan-Project/blob/main/Docs/Architecture.md)、[Grains Design](https://github.com/sucRo-RimWorld/Ancient-Medieval-Japan-Grains/blob/main/Docs/Design.md)、[Waterworks Design](https://github.com/sucRo-RimWorld/Ancient-Medieval-Japan-Waterworks/blob/main/Docs/Design.md)。確定設計と実装はこの所有リポジトリを正本とする。Projectは先行技術研究と連携情報を持つ。
 
-## Approved gameplay
-- Requires Ancient & Medieval Japan Waterworks. Grains optional; common Vanilla `Plant_Rice` always; no duplicated rice processing.
-- Create a rectangular plot with one drag operation; one plot ID even alongside touching plots; no implicit merging.
-- A pawn must work before completion. Progress is persistent on the plot, pauses and resumes; only one worker can reserve its stable construction anchor.
-- The original terrain and fertility remain intact; bund is at cell edges, not occupying entire planting cells.
-- Only after completion, if **all** cells have no Zone, create a Vanilla `Zone_Growing` and select Vanilla rice. If fully/partly zoned, leave all existing zones untouched; user controls missing cells. No automatic zone repair.
-- Completed plot detects a cardinal adjacent **exposed supplied canal** or accepted natural source using Waterworks queries. Covered canal withdrawal is prohibited; no manual controls or fluid volumes.
-- Other crops may use Vanilla zone naturally and receive no custom water bonus or penalty.
+## 1. 確定した方針（作者承認 2026-10-21）
 
-## First-source implementation boundary
-- `PaddyMapComponent` saves rectangular bounds, monotonic ID, remaining work, and anchor. Derive cell-index and visual edges on load; no custom plant inventories.
-- Initial code uses a bounded construction-work **prototype constant** solely to make the work Job observable. It is not final balance and must be independently validated and author-approved before release.
-- The component stores wet/dry connection as transient cache, recalculated at low frequency; drawing changes invalidate terrain mesh. No per-plant source graph queries.
-- A `SectionLayer` renders a simple stationary wet overlay and edge bunds; its visual materials are placeholders pending asset review.
-- Rice growth coefficient **not implemented** until CCTO/Grains crop numbers are settled; no invented bonus.
-- If whole plot cells become occupied, work waits rather than destroying crops. Cancelling the plot does not delete Vanilla growing zones or revert soil.
-- Read-only source inspection is not compile, game load, gameplay PASS or release acceptance.
+1. Rice Cultivation は **AMJ Waterworks を必須依存**とする。以前の「Waterworks任意連携」は撤回。Waterworks自身はRice Cultivationに依存しない。水路の自然水取水・掘削・接続判定はWaterworksが担当し、Rice Cultivationは水田造成・**区画別の自動給水状態**・水面描画・稲への栽培効果を担当する。
+2. **GrainsはRice Cultivationの必須依存ではない。** Rice Cultivation + Waterworksだけでも Vanilla `Plant_Rice` / `RawRice` で播種・収穫・食料利用を成立させる。Grains併用時は同じ `Plant_Rice` と既存の `AMJC_RiceSheaf → AMJC_RiceInHull → RawRice / AMJC_WhiteRice` を使い、水田用の独立PlantDefや加工重複を作らない。Grains単独の陸稲栽培はWaterworksを要しない。
+3. プレイヤーが**範囲を指定して水田を造成**する。指定した水田区画の**外周に畦を自動形成**する。畦は各辺に独立した**1マス幅の壁を要求しない**。耕作可能面積を不必要に狭めないことを目的とする。
+4. 水田区画ごとに**独立した水管理**を可能とする。互いに接する別々の区画も勝手に統合しない。**初回は各区画がWaterworksとの水源接続を自動判定し、個別に湛水可能か決める。プレイヤーによる給水・落水の手動管理は要求しない。**
+5. 水田での稲・麦の二毛作は初回実装の範囲外。[史実・技術評価](RicePaddyDoubleCroppingCandidate-2026-10-21.md)は将来資料。
+6. **2026-10-21 作者承認（追加）：水田造成で元の土壌TerrainDefを一律の水田TerrainDefに置換せず、土壌肥沃度の差を保存する。** 田面の湛水表現は土壌とは独立した描画層で重ねる。稲の成長に対する肥沃度効果は既存の `Plant_Rice` 設定を保持し、水管理効果は別に検討する。これは水田専用ZoneのC#実装方式や数値補正率の承認ではない。
+7. **2026-10-21 作者承認（ため池との依存境界）：水田の初回機能に人工ため池の造成・貯水は要求しない。** 既存のWaterworks自然水源・通水中の開放水路を使い、ため池なしで水田の造成・自動給水を成立させる。将来の人工ため池は[Waterworks本体の将来候補](https://github.com/sucRo-RimWorld/Ancient-Medieval-Japan-Waterworks/blob/main/Docs/Design.md#35-future-constructed-ponds--ため池--deferred-common-infrastructure-candidate-2026-10-21-author-decision)であり、水田側に独立した貯水・池地形の正本を増やさない。池から水田への消費量、渇水計算、水量係数等は今回承認されていない。
 
-## Acceptance after implementation
-1. Whole unzoned rectangle -> build -> Vanilla rice zone; no numeric bonus until reviewed.
-2. Fully/partially zoned rectangle -> no change to any existing zone.
-3. Interrupt, reload, and resume construction; no double job or old-job resurrection after removal/recreate.
-4. Exposed connected canal/water -> wet visual; covered/disconnected -> dry, and restored -> wet.
-5. Adjacent independently designated plots remain separate; no soil/fertility changes.
-6. Grains absent / present loading, Vanilla rice harvest uses respective existing recipe output. No game launch until functional slice ready.
+8. **2026-10-21 作者承認（再監査による評価時期の修正）：ため池の必要性は水田の水源・UX設計段階から評価する。** 「水田・Firewaterの製品実装が完了するまでため池の評価をしない」という旧順序を撤回。**初回実装はため池非依存を維持**し、既存Waterworksの天然淡水・通水中の水路で成立させる。評価の結果、人工ため池の初回必須化や新しい水源が必要かどうかは**別の作者判断**とし、自動的に実装対象へ追加しない。将来の**有限ため池**については、取水可否の2値判定だけでなく、必要水量の消費・不足判定を伴う設計をWaterworks側で行う。水田区画にため池の貯水正本や流体シミュレーションを重複実装しない。
+
+9. **2026-10-21 作者方針（複雑化を避ける）：C案を基礎とし、初回公開では必要最小限の水田造成・区画別の自動給水・Vanillaの栽培を優先する。** DBH for Medievalは技術参照に留め、必須依存にしない。水量・流速・標高等の汎用水理計算や、独自Growing Job／大型の管理システムを追加しない。ここで除外するのは**独自の栽培Job**であり、**水田の造成に必要な最小限の施工Job**とは区別する。水口位置、作業量、補正率など未承認の細部を確定するものではない。
+
+10. **2026-10-21 作者選択（施工方式B）：水田は範囲指定だけで即時完成せず、ポーンが造成作業を行って完成させる。** 初回は**1区画につき単一の施工進捗と原則1件の同時施工Job**を採る。作業の中断・再開と同一区画の重複作業防止は必要だが、セルごとの細分化、複数の同時施工枠、独立した畦・水口Jobは初回必須にしない。労働時間・資材・作業技能の数値は未決定。ユーザーのB選択は**ポーン施工の維持**への承認であり、特定C#クラス構成やバランス値の承認ではない。
+
+## 2. C案の初回仕様：造成と通常栽培（作者の自動給水方針に整合、細部は未確定）
+
+### 2.1 プレイヤー操作
+
+1. **「水田を造る」**で矩形範囲を1回指定する。1指定=1区画IDとし、接する別区画を勝手に統合しない。
+2. ポーンが田面整備と外周畦の造成を行う。畦は**セル境界に描く**ため、栽培マスを1マス幅の壁で失わず、元`TerrainDef`／肥沃度を保存する。完成前に水田の効果を与えない。
+3. **完成時の栽培Zoneは3ケースだけ扱う。** ①範囲全域にZoneがなければVanilla `Zone_Growing`を1つ自動生成し、既定作物を`Plant_Rice`にする。②全域が既存の`Zone_Growing`ならそのまま保持し、作物設定を変えない（複数Zoneが混在しても結合しない）。③一部だけが`Zone_Growing`なら**Zoneには一切手を加えず**、残りは通常の栽培Zone指定をプレイヤーに任せる。既存Zoneの削除／再設定で水田を消さず、後からZoneを自動復活させない。ほかのZone種別が重なるセルは造成対象として受け入れない候補とし、理由を事前に表示する。
+4. **接続済み水源から自動給水する。** プレイヤーに給水ボタン・落水ボタン・取排水口の指定を要求しない。水源がなくても造成は可能で、「水源なし」と表示する。区画の状態は必要な場合だけ調べられればよい。
+
+**初回の操作目標：** 範囲指定→ポーンによる造成→栽培→水路／天然水源への接続があれば自動的に水田として機能。水田ごとに毎回管理操作を繰り返さない。
+
+### 2.2 データと施工
+
+- `RicePaddyMapComponent`の`PaddyPlot`が区画ID、耕作セル、**施工完了・残工数**の正本。セル→区画索引と畦辺は派生データ。**水口の開閉、手動操作モード、排水口、湿潤進捗／貯水量は初回の保存項目にしない。** 湛水可否は完成状態とWaterworksの現在の接続判定から算出する。**Zoneの自動生成は施工完了の1回のイベントでのみ実行**し、ロード、接続変更、定期更新をきっかけに繰り返さない。Zoneをプレイヤーが削除しても自動復活しない。
+- VanillaのGrowing Zoneが播種・収穫を担当し、`PaddyPlot`が物理区画と接続状態を担当する。水田状態による稲の補正もZone IDを基準にしない。
+- 施工量は田面面積と畦外周に応じたポーン作業とし、**作者承認のB案として1区画に1つの保存可能な施工進捗・原則1件の同時施工Jobを維持する**。範囲指定直後に無料で完成させない。**最低限の専用施工WorkGiver／JobDriverは実装候補**（Vanilla Growing Jobだけで造成が自動的に起きるわけではない）。施工Jobは作業地点への到達・作業中断／再開・同一区画への重複着手防止を満たし、工事進捗はポーンのJobではなく`PaddyPlot`に保持する。施工予約は同一区画で1作業だけ成立する最小の方法を選び、選択可能な畦マーカーThingを新設することを必須としない。**セルごとの施工Job、複数工区、畦水口の独立Jobは初版対象外。** 大区画の長時間占有が実ゲームで問題になった場合に限り、並列作業または区画面積上限を比較する。時間・材料・WorkTypeは未決定。
+- 既に作物のある農地は**収穫後に造成**する初版候補。作物を無断伐採しない。栽培Zoneは残すが、施工範囲に植物がある場合は着工を保留・理由を表示し、必要な播種停止はプレイヤー操作を使う。初版のためにVanilla播種Job・`PlantUtility`全体へ多段Harmonyパッチを導入しない。
+- **初回は既存区画の動的拡張・縮小と畦／水口の移設を対象外**とする。水田撤去では区画・畦・描画だけ除き、元のTerrainとGrowing Zoneは残す。
+
+### 2.3 施工Jobの最小実装候補（2026-10-22、B案を維持）
+
+- **実在するVanilla入口:** 1.6 `WorkGiver_Scanner.PotentialWorkCellsGlobal` / `JobOnCell` はセル対象の作業候補を返せる。1.6 `JobDriver_PlantSow.TryMakePreToilReservations` はセルを `pawn.Reserve(job.targetA, job, ...)` で予約している。したがって**専用の設置Thingを施工予約のためだけに作ることは必須ではない**。[`WorkGiver_Scanner.cs`](https://github.com/32bitx64bit/RW-Decompiled-1.6/blob/main/RimWorld/WorkGiver_Scanner.cs)／[`JobDriver_PlantSow.cs`](https://github.com/32bitx64bit/RW-Decompiled-1.6/blob/main/RimWorld/JobDriver_PlantSow.cs)。
+- **一区画一Jobの流れ（候補）：** 未完成`PaddyPlot`から到達可能な代表施工セルを1つ候補化→未予約・無障害ならJob発行→移動後、Jobの作業Tickで`PaddyPlot.remainingWork`を減らす→0で区画を完成扱いにし、畦描画・Zone作成の**単発処理**と自動取水判定を行う。セーブするのは**区画ID、範囲、残工数／完成状態**であり、進捗をポーンJobに保存しない。中断するとセル予約は解放され、次のポーンが残工数から再開する。作業職種はVanillaの適切な既存系統（Construction優先候補）とし、別の水田専用作業タブを作らない。
+- **必要最小限の安全条件：** 施工Jobの開始・作業途中・完了時に区画の存在／未完成／施工セルが有効／栽培植物が妨げていないことを再確認する。施工取消や代表セルの占有・到達不能時には古いJobを打ち切り、別の候補セルに切替できるようにする。**二重施工防止の再監査（2026-10-22）：** [Vanilla 1.6 `ReservationManager`](https://github.com/32bitx64bit/RW-Decompiled-1.6/blob/main/Verse.AI/ReservationManager.cs) は**セルごとに**予約を管理するため、同一区画のポーンが**別々の代表セルを予約すると二重施工を防げない**。区画ごとに共通の予約対象を維持し、代替セルへの変更は**先行Jobが失効／予約解放された後だけ**行う候補とする。さらに`plotId`をJob側にも紐づけ、工事取消→同じ場所へ再指定しても旧Jobが別の新規区画の工数を変更しないことを開始・作業中に照合する。プレイヤー強制作業やロード再開で予約制御を迂回しないか、最小試作で確認する。**独自の永続的なClaim台帳は追加せず**、区画単位の施工正本とVanilla予約を再利用する。
+- **初回除外：** 1セルごとの施工Designation、ポーン多数による同時進捗加算、畦／田面／水口ごとの別Job、施工マーカーThingや水田専用Growing Zone、過剰なJob/予約Patch。田面が空いているのに既存栽培Zoneが自動再播種する場合は、初回は既存`allowSow`操作を案内する（Zoneを自動変更しない）。**工事所要時間・材料費・職種の具体数値は未決定**。静的API確認だけで1.6/1.7実ゲーム動作をPASSとはしない。
+
+## 3. 自動給水（初回仕様の簡素化）
+
+### 3.1 水源判定
+
+- Waterworksは必須、Grainsは任意、DBH for Medievalは技術参考のみ。**完成した水田の外周が上下左右で、水路の露出・通水中セル、または適格な天然水源と接しているか**を水田ごとに判定する。
+- 水路：Waterworksの`CanalMapComponent.CanDrawWaterFromCanalAt`を利用。天然水源：`HasNaturalSourceAt`と必要な露出条件を利用。**橋／蓋の下の水路からは取水しない。** 対角接触だけでは給水しない。接点は自動認識し、プレイヤーに水口の位置決めを求めない。
+- **接続あり → 湛水描画と、その稲に必要な水田効果を適用。接続なし → 湛水効果を適用しない。** 機能上は二値で十分。水源の喪失・復旧で自動的に状態を更新する。水面の切り替えに独自アニメーション・残留水段階・タイマーは付けない。**接続可否の計算結果だけをキャッシュ**し、セーブ時に水量や遷移フェーズを持たない。
+- 区画の接続は**区画単位の低頻度再評価／キャッシュ**とし、稲の成長率を問い合わせるたびにWaterworksの水路網を探索しない。Waterworks側に接続変更通知は現在ないため、通知受信必須の契約を仮定しない。更新間隔は実装で負荷と表示遅延を調整する。
+
+### 3.2 初回で作らない機能
+
+- **手動給水・落水、中干し、収穫前落水、季節／生育段階に応じた水口操作は実装しない。** ゲーム上の効果が確認できた場合にのみ将来候補とする。収穫Jobに影響しない単なる水面描画のために落水操作を追加しない。
+- **排水口・下流水路・水口建造物・畦端の選択マーカー・個別水門は不要。** 水量（リットル）／流速／勾配／蒸発・浸透／田から田への送水／区画間での水共有といった流体シミュレーションを追加しない。
+- 人工ため池は初回不要とする作者決定を維持。将来の有限ため池の容量・消費計算はWaterworksの所有事項であり、Rice側に独立した水源量を持たない。
+
+## 4. 稲の栽培と描画
+
+- `Plant_Rice`はVanilla・Grains共通。Grainsがなければ`RawRice`、あれば既存の穀束・加工工程を利用し、水田用米PlantDefは追加しない。
+- 土壌肥沃度・温度・日照の既存成長処理を維持し、水田効果は**完成済み区画＋接続あり＋稲**に限る小さな補正処理を候補とする。稲の基本成長率が0なら強制的に育てない。**CCTO／Grainsの基準値が定まるまで補正係数・Harvest量・実装パッチ入口を固定しない。**
+- **畦は区画の外周辺に沿う直線・角だけ、水面は単純な静的重ね描画**とする。隣接する独立区画の共有辺は描画上1本へ整理しても、区画のIDや給水判定は共有しない。メッシュ／表示用の頂点列は区画造成・撤去・二値の給水結果変化時だけ更新し、描画のための全セル毎Tick走査をしない。Terrainを水域へ変更して通行・橋・建築・水深の副作用を発生させない。画面上の植物を隠さない描画順序は最小の実機確認対象とし、常時水面アニメーション・専用区画選択Thingは作らない。
+- **稲以外の作物を既存Vanilla Zoneで指定しても禁止しない**が、初回は水田補正を適用せず、独自の湛水被害・耐水性・播種制限も加えない。農地としての通常の挙動を維持する。稲麦二毛作・他作物向け湛水処理・稲専用成長Zoneは将来検討とし、**水田の見た目だけを理由に新しい植物障害判定を追加しない**。
+
+## 5. 実装開始前の残条件と初回受入
+
+**作者承認済み：** §1と**初回は自動給水・手動給水／落水を置かず、水田操作を最小化しつつ、ポーンによる施工Job（B案）を残す方針**。上記§2〜4のクラス構成・UI・演出・Job・補正率などは実装設計の推奨候補で、作者が個別承認した数値ではない。§6〜13の手動水口・落水・施工細分化案は過去の技術比較としてのみ参照し、初版の正本にしない。
+
+**独立実装の必要性（2026-10-22実配布監査）：** [Rimstro・ZPの現行1.6実XML](RicePaddyCurrentNonVEActualDefs-2026-10-22.md)、Vanilla/MO、VE More Plants、DBH for Medieval、AMJ Waterworks/Grainsを機能とMod全体の依存・文化適合・互換影響で比較した。いずれも**元Terrainと肥沃度を変えず、畦をセル辺に形成し、水田ごとにWaterworks接続を自動判定して、Vanilla/Grains共通の`Plant_Rice`を育てる**承認要件を満たさない。RimstroはVanilla稲のsowTags・生育日数・収量を包括的に書き換え、ZPは専用地形・専用稲・固定肥沃度の設置建築を使う。**DLLのIL・全併用ロード後挙動は未検証**だが、確認済みの構成差・原Mod全体の負担を解消しないため、独自実装の要否判断に必要な追加調査とはしない。IL/ロード時Patchの確認は将来の公式互換・同時ロード検証へ限定。独立実装の入口判定は[監査記録](RicePaddyIndependentImplementationDecision-2026-10-22.json)とProjectのバリデータ結果で確定する。初回の施工時間・資材・稲の効果量は引き続き別のゲームバランス判断であり、入口判定に混同しない。
+
+**初回受入対象：** 1回の範囲指定→施工（中断・再開、二重着手防止）→Vanilla播種／収穫、元Terrain・肥沃度の保持、隣接区画の非結合、天然水／露出水路からの**自動給水**、切断・覆い・復旧に伴う自動状態変化、保存再読込、Grainsなし／あり。**栽培Zoneは全域未設定・全域既存・部分重複の3ケースで、既存Zoneの変更・削除・再生成を生じさせないことを確認**する。水面表示が稲を隠さず、隣接区画で共有畦の二重描画がないことを確認する。稲以外の作物に独自の湛水制限・成長補正を適用しない。**手動落水・排水施設・収穫時の水位変動は受入条件に入れない。** ゲームテストは機能実装後に最小限をまとめて実施する。
+
+
+## 6. 実装状態（2026-10-22、B案の一次開発ブランチ）
+
+- 開発対象：矩形区画、単一施工進捗と共通予約セル、Vanilla栽培Zoneの非破壊生成、Waterworksの外周取水二値判定、軽量の辺畦・水面の独立表示。コードのビルド・ロードは未検証。
+- **施工工数の100 / cell＋25 / edgeは動作経路を検査するための試作値で、作者承認された数値バランスではない。** 正式値に先行して受入判定・公開しない。
+- **稲成長率補正は未実装。** CCTO・Grainsの基準バランス確定後にのみ追加する。水面表示の有無を稲の自動成長ボーナス実装済みと混同しない。
+- `Source/SectionLayer_AMJR_Paddy.cs` のアルファ色は暫定視認確認素材で、最終画像採用ではない。
+- 対応検証は1.6だけを第一目標とし、1.7対応・旧セーブ移行は別途評価する。
+
+## 7. 独立実装の必要性の証拠
+
+- [Projectの判定記録](https://github.com/sucRo-RimWorld/Ancient-Medieval-Japan-Project/blob/main/Docs/Research/RicePaddyIndependentImplementationDecision-2026-10-22.json)、実1.6 Rimstro / ZP のDefとWorkshopIDおよびSHA-256記録はProjectで管理する。第三者のXML/コード/ DLLをRice Modに再同梱しない。
