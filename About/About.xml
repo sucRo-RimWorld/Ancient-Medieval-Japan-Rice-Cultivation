@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ModMetaData>
+  <name>Ancient &amp; Medieval Japan - Rice Cultivation（中世日本 - 水田稲作）</name>
+  <author>sucRo</author>
+  <packageId>sucro.ancientmedievaljapan.ricecultivation</packageId>
+  <supportedVersions><li>1.6</li></supportedVersions>
+  <modVersion>0.1.0-dev</modVersion>
+  <modDependencies>
+    <li><packageId>sucro.ancientmedievaljapan.waterworks</packageId><displayName>Ancient &amp; Medieval Japan - Waterworks</displayName></li>
+  </modDependencies>
+  <loadAfter>
+    <li>DankPyon.Medieval.Overhaul</li>
+    <li>sucro.ancientmedievaljapan.core</li>
+  </loadAfter>
+  <description>Development source for pawn-constructed, source-fed paddies using normal growing zones. Requires AMJ Waterworks. Grains is optional. Gameplay values and graphics are not final. Do not install without compiled Assembly.
+
+ポーンが造成する独立水田の開発ソースです。AMJ Waterworksが必要、Grainsは任意です。生育補正と数値は未確定で、DLLの生成・実ゲーム検証前です。</description>
+</ModMetaData>

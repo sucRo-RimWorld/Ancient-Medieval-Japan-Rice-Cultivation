@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <AMJR_CreateLabel>Build rice paddy</AMJR_CreateLabel>
+  <AMJR_CreateDesc>Draw one rectangular field. A construction pawn prepares the field and its bund; normal growing-zone planting follows when complete. Waterworks supplies it automatically.</AMJR_CreateDesc>
+  <AMJR_RemoveLabel>Remove rice paddy</AMJR_RemoveLabel>
+  <AMJR_RemoveDesc>Remove the selected paddy plot, leaving the original terrain and existing growing zone unchanged.</AMJR_RemoveDesc>
+  <AMJR_InvalidRectangle>Select a complete unoccupied rectangle of plantable soil.</AMJR_InvalidRectangle>
+</LanguageData>
