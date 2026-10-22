@@ -1,0 +1,61 @@
+name: Rice Cultivation 1.6 static source build
+on:
+  pull_request:
+    paths:
+      - 'Source/**'
+      - 'About/**'
+      - 'Defs/**'
+      - 'Patches/**'
+      - '.github/workflows/source-build16.yml'
+permissions:
+  contents: read
+jobs:
+  source:
+    if: >-
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      github.event.pull_request.user.login == 'sucRo0629'
+    runs-on: [self-hosted, linux, x64, amj-rimworld]
+    timeout-minutes: 12
+    steps:
+      - name: Compile Rice against existing isolated 1.6 game and Waterworks DLL
+        shell: bash
+        env:
+          REQUEST_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          [[ "$(id -un)" == amjrunner ]] || exit 2
+          [[ -z "$(findmnt -t drvfs -o TARGET -n)" ]] || exit 2
+          root=/srv/amj-rimworld
+          game="$root/game/RimWorldLinux_Data/Managed"
+          [[ -f "$root/.amj-isolated-runtime.json" ]] || exit 2
+          for lib in Assembly-CSharp UnityEngine.CoreModule; do
+            [[ -f "$game/$lib.dll" && ! -L "$game/$lib.dll" ]] || exit 2
+          done
+          sdk="$HOME/.dotnet/dotnet"
+          [[ -x "$sdk" ]] || { echo "NO_SDK"; exit 2; }
+          workspace="$(mktemp -d "$RUNNER_TEMP/rice-source16.XXXXXXXX")"
+          trap 'rm -rf "$workspace"' EXIT
+          git clone --quiet --filter=blob:none --no-checkout             https://github.com/sucRo-RimWorld/Ancient-Medieval-Japan-Rice-Cultivation.git "$workspace/rice"
+          git -C "$workspace/rice" fetch --quiet --depth=1 origin "$REQUEST_SHA"
+          git -C "$workspace/rice" checkout --quiet "$REQUEST_SHA"
+          git clone --quiet --depth=1             https://github.com/sucRo-RimWorld/Ancient-Medieval-Japan-Waterworks.git "$workspace/waterworks"
+          dll="$workspace/waterworks/Assemblies/AncientMedievalJapanWaterworks.dll"
+          [[ -s "$dll" ]] || { echo "MISSING_WATERWORKS_DLL"; exit 2; }
+          mkdir -p "$RUNNER_TEMP/rice-build16-output"
+          "$sdk" build "$workspace/rice/Source/AncientMedievalJapanRiceCultivation.csproj"             --nologo -c Release -p:NuGetAudit=false             -p:RimWorldManagedDir="$game" -p:WaterworksDll="$dll"             --output "$RUNNER_TEMP/rice-build16-output"             >"$RUNNER_TEMP/rice-build16-output/build.log" 2>&1 || {
+              cat "$RUNNER_TEMP/rice-build16-output/build.log"
+              echo "RICE_BUILD_FAIL source=$REQUEST_SHA"
+              exit 1
+            }
+          tail -n 30 "$RUNNER_TEMP/rice-build16-output/build.log"
+          test -s "$RUNNER_TEMP/rice-build16-output/AncientMedievalJapanRiceCultivation.dll"
+          sha256sum "$RUNNER_TEMP/rice-build16-output/AncientMedievalJapanRiceCultivation.dll"
+          echo "RICE_BUILD_PASS source=$REQUEST_SHA"
+      - name: Upload build diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: rice-source-build16-${{ github.run_id }}
+          path: ${{ runner.temp }}/rice-build16-output/build.log
+          retention-days: 3
+          if-no-files-found: warn
