@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Defs>
+  <WorkGiverDef>
+    <defName>AMJR_ConstructPaddyWork</defName>
+    <label>construct rice paddy</label>
+    <giverClass>AncientMedievalJapan.RiceCultivation.WorkGiver_ConstructPaddy</giverClass>
+    <workType>Construction</workType>
+    <priorityInType>62</priorityInType>
+    <verb>construct</verb>
+    <gerund>constructing paddy</gerund>
+    <requiredCapacities><li>Manipulation</li></requiredCapacities>
+    <scanThings>false</scanThings>
+    <scanCells>true</scanCells>
+  </WorkGiverDef>
+</Defs>
