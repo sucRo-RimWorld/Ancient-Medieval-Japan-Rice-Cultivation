@@ -1,7 +1,7 @@
 # Rice Cultivation / 水田稲作 — 造成・水管理の設計草案
 
 **作成:** 2026-10-21 ／ **移管:** 2026-10-22 ／ **管理:** Ancient-Medieval-Japan-Rice-Cultivation  
-**状態:** 作者承認は§1（B案を含む）。§2〜4は初版推奨技術仕様。**このリポジトリで実装進行中。1.6ソースビルド成功・DLL同梱。実ゲーム検証・公開は未確認。** 旧比較資料§6〜13は[Project原資料](https://github.com/sucRo-RimWorld/Ancient-Medieval-Japan-Project/blob/main/Docs/Research/RicePaddyDesign-2026-10-21.md)を履歴参照。  
+**状態:** 作者承認は§1（B案を含む）。§2〜4は初版推奨技術仕様。**このリポジトリで実装進行中。1.6 DLL同梱・限定した実ゲーム検証がVanilla／Grains併用ともPASS。公開・数値バランス・外観採用は未確認。** 旧比較資料§6〜13は[Project原資料](https://github.com/sucRo-RimWorld/Ancient-Medieval-Japan-Project/blob/main/Docs/Research/RicePaddyDesign-2026-10-21.md)を履歴参照。  
 **原則:** [Project Architecture](https://github.com/sucRo-RimWorld/Ancient-Medieval-Japan-Project/blob/main/Docs/Architecture.md)、[Grains Design](https://github.com/sucRo-RimWorld/Ancient-Medieval-Japan-Grains/blob/main/Docs/Design.md)、[Waterworks Design](https://github.com/sucRo-RimWorld/Ancient-Medieval-Japan-Waterworks/blob/main/Docs/Design.md)。確定設計と実装はこの所有リポジトリを正本とする。Projectは先行技術研究と連携情報を持つ。
 
 ## 1. 確定した方針（作者承認 2026-10-21）
@@ -79,7 +79,7 @@
 
 ## 6. 実装状態（2026-10-22、B案の一次開発ブランチ）
 
-- 開発対象：矩形区画、単一施工進捗と共通予約セル、Vanilla栽培Zoneの非破壊生成、Waterworksの外周取水二値判定、軽量の辺畦・水面の独立表示。1.6コードのソースコンパイルのみ確認済み。実ゲームでのロード・挙動は未検証。
+- 開発対象：矩形区画、単一施工進捗と共通予約セル、Vanilla栽培Zoneの非破壊生成、Waterworksの外周取水二値判定、軽量の辺畦・水面の独立表示。1.6ソースコンパイルに加え、限定した実ゲームロード・施工・取水・保存復元を確認済み。
 - **施工工数の100 / cell＋25 / edgeは動作経路を検査するための試作値で、作者承認された数値バランスではない。** 正式値に先行して受入判定・公開しない。
 - **稲成長率補正は未実装。** CCTO・Grainsの基準バランス確定後にのみ追加する。水面表示の有無を稲の自動成長ボーナス実装済みと混同しない。
 - `Source/SectionLayer_AMJR_Paddy.cs` のアルファ色は暫定視認確認素材で、最終画像採用ではない。
@@ -93,4 +93,11 @@
 
 - コンパイル元Rice `main`: `dd120dd2c5200286b49a91e67b01e4a61bb06440`（B造成・到達可能な施工セルへ移動する修正を含む）。
 - 既存の隔離1.6ホストで手動起動した[Projectのソースビルド #39783208883](https://github.com/sucRo-RimWorld/Ancient-Medieval-Japan-Project/actions/runs/39783208883) は `RICE_BUILD_PASS`。生成した1.6用 `Assemblies/AncientMedievalJapanRiceCultivation.dll` は22,528 bytes、SHA-256 `e905e32f2691046c265484165ba122eca12296a38e9a74078b11a2c5cc77ecb7`。
-- これは1.6ゲームのAPIを参照した**ソースのビルド成功**であり、ゲームを起動してのロード・施工・湛水・保存復元・描画・Grains併用動作の証明ではない。1.7、公開、ビジュアル採用、労働量と生育率のバランスは未承認／未検証。
+- 上記§8は**ソースビルドだけの証拠**である。後続の実ゲーム確認は下記§9を参照する。1.7、公開、ビジュアル採用、労働量と生育率のバランスは未承認／未検証。
+
+## 9. 実ゲーム受入結果（2026-10-22、限定的）
+
+- 正式な検証証拠：[Docs/Validation/RiceNative16-20261022.md](Validation/RiceNative16-20261022.md)。原本のRimWorld Linux 1.6.4871 rev598、手動起動の[Project Actions #39789707915](https://github.com/sucRo-RimWorld/Ancient-Medieval-Japan-Project/actions/runs/39789707915)。
+- Vanilla + Waterworks + Rice／同構成 + Grains：**各Pickle 1/1 PASS、スキップ0、実ゲーム終了0、Unity ERROR0**。実ポーン施工、中断再開、共通予約、区画・Zone非破壊、土壌保持、取水の被覆／断絶／復旧、実ディスク保存・再読込を確認。
+- 再読込前後の未完成区画 `id=3, workLeft=599, complete=false` は両構成で一致。生産DLLは§8のバイナリから変更なし。先行する2回のFAILはテストの時間前提とGrains隔離環境の誤りで、生産コード修正は不要だった。
+- **未検証／未承認：** 施工工数と資材バランス、水田による稲の成長率・収穫効率（未実装）、通常プレイ視点の畦・水面画像の品質、全作物の生育サイクル、実セーブへの後付け、1.7、MO／CCTO併用とWorkshop公開。描画レイヤーの登録と画像品質の採用は別。
