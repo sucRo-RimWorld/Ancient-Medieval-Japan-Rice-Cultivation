@@ -12,7 +12,7 @@
     <li>DankPyon.Medieval.Overhaul</li>
     <li>sucro.ancientmedievaljapan.core</li>
   </loadAfter>
-  <description>Development source for pawn-constructed, source-fed paddies using normal growing zones. Requires AMJ Waterworks. Grains is optional. Gameplay values and graphics are not final. Do not install without compiled Assembly.
+  <description>Development source for pawn-constructed, source-fed paddies using normal growing zones. Requires AMJ Waterworks. Grains is optional. Gameplay values and graphics are not final. Compiled 1.6 assembly included; loaded-game verification is pending.
 
-ポーンが造成する独立水田の開発ソースです。AMJ Waterworksが必要、Grainsは任意です。生育補正と数値は未確定で、DLLの生成・実ゲーム検証前です。</description>
+ポーンが造成する独立水田の開発ソースです。AMJ Waterworksが必要、Grainsは任意です。生育補正と数値は未確定で、1.6向けDLLを同梱していますが、実ゲーム検証前です。</description>
 </ModMetaData>
