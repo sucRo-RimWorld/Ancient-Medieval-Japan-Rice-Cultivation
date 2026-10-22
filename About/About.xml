@@ -10,7 +10,7 @@
   </modDependencies>
   <loadAfter>
     <li>DankPyon.Medieval.Overhaul</li>
-    <li>sucro.ancientmedievaljapan.grains</li>
+    <li>sucro.ancientmedievaljapan.core</li>
   </loadAfter>
   <description>Development source for pawn-constructed, source-fed paddies using normal growing zones. Requires AMJ Waterworks. Grains is optional. Gameplay values and graphics are not final. Do not install without compiled Assembly.
 
