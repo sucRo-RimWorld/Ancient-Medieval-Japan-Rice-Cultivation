@@ -1,7 +1,7 @@
 # Rice Cultivation / 水田稲作 — 造成・水管理の設計草案
 
 **作成:** 2026-10-21 ／ **移管:** 2026-10-22 ／ **管理:** Ancient-Medieval-Japan-Rice-Cultivation  
-**状態:** 作者承認は§1（B案を含む）。§2〜4は初版推奨技術仕様。**このリポジトリで実装進行中。ビルド・実ゲーム検証・公開は未確認。** 旧比較資料§6〜13は[Project原資料](https://github.com/sucRo-RimWorld/Ancient-Medieval-Japan-Project/blob/main/Docs/Research/RicePaddyDesign-2026-10-21.md)を履歴参照。  
+**状態:** 作者承認は§1（B案を含む）。§2〜4は初版推奨技術仕様。**このリポジトリで実装進行中。1.6ソースビルド成功・DLL同梱。実ゲーム検証・公開は未確認。** 旧比較資料§6〜13は[Project原資料](https://github.com/sucRo-RimWorld/Ancient-Medieval-Japan-Project/blob/main/Docs/Research/RicePaddyDesign-2026-10-21.md)を履歴参照。  
 **原則:** [Project Architecture](https://github.com/sucRo-RimWorld/Ancient-Medieval-Japan-Project/blob/main/Docs/Architecture.md)、[Grains Design](https://github.com/sucRo-RimWorld/Ancient-Medieval-Japan-Grains/blob/main/Docs/Design.md)、[Waterworks Design](https://github.com/sucRo-RimWorld/Ancient-Medieval-Japan-Waterworks/blob/main/Docs/Design.md)。確定設計と実装はこの所有リポジトリを正本とする。Projectは先行技術研究と連携情報を持つ。
 
 ## 1. 確定した方針（作者承認 2026-10-21）
@@ -79,7 +79,7 @@
 
 ## 6. 実装状態（2026-10-22、B案の一次開発ブランチ）
 
-- 開発対象：矩形区画、単一施工進捗と共通予約セル、Vanilla栽培Zoneの非破壊生成、Waterworksの外周取水二値判定、軽量の辺畦・水面の独立表示。コードのビルド・ロードは未検証。
+- 開発対象：矩形区画、単一施工進捗と共通予約セル、Vanilla栽培Zoneの非破壊生成、Waterworksの外周取水二値判定、軽量の辺畦・水面の独立表示。1.6コードのソースコンパイルのみ確認済み。実ゲームでのロード・挙動は未検証。
 - **施工工数の100 / cell＋25 / edgeは動作経路を検査するための試作値で、作者承認された数値バランスではない。** 正式値に先行して受入判定・公開しない。
 - **稲成長率補正は未実装。** CCTO・Grainsの基準バランス確定後にのみ追加する。水面表示の有無を稲の自動成長ボーナス実装済みと混同しない。
 - `Source/SectionLayer_AMJR_Paddy.cs` のアルファ色は暫定視認確認素材で、最終画像採用ではない。
@@ -88,3 +88,9 @@
 ## 7. 独立実装の必要性の証拠
 
 - [Projectの判定記録](https://github.com/sucRo-RimWorld/Ancient-Medieval-Japan-Project/blob/main/Docs/Research/RicePaddyIndependentImplementationDecision-2026-10-22.json)、実1.6 Rimstro / ZP のDefとWorkshopIDおよびSHA-256記録はProjectで管理する。第三者のXML/コード/ DLLをRice Modに再同梱しない。
+
+## 8. 現行1.6 DLLのビルド証拠（2026-10-22）
+
+- コンパイル元Rice `main`: `dd120dd2c5200286b49a91e67b01e4a61bb06440`（B造成・到達可能な施工セルへ移動する修正を含む）。
+- 既存の隔離1.6ホストで手動起動した[Projectのソースビルド #39783208883](https://github.com/sucRo-RimWorld/Ancient-Medieval-Japan-Project/actions/runs/39783208883) は `RICE_BUILD_PASS`。生成した1.6用 `Assemblies/AncientMedievalJapanRiceCultivation.dll` は22,528 bytes、SHA-256 `e905e32f2691046c265484165ba122eca12296a38e9a74078b11a2c5cc77ecb7`。
+- これは1.6ゲームのAPIを参照した**ソースのビルド成功**であり、ゲームを起動してのロード・施工・湛水・保存復元・描画・Grains併用動作の証明ではない。1.7、公開、ビジュアル採用、労働量と生育率のバランスは未承認／未検証。
