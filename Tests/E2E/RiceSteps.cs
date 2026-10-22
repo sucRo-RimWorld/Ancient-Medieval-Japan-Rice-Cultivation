@@ -116,14 +116,6 @@ namespace AncientMedievalJapan.RiceCultivation.E2E
                     map.zoneManager.ZoneAt(At(4, 0)) == null,
                     "Existing partial growing zone was changed");
 
-                ctx.Require(paddy.AddRectangle(new CellRect(position.x + 6, position.z, 2, 2)),
-                    "Could not create unfinished save/reload fixture");
-                var pending = paddy.PlotAt(At(6, 0));
-                incompleteId = pending.id;
-                ctx.Require(paddy.AdvanceWork(incompleteId, pending.workAnchor, 1f),
-                    "Could not create resumable saved work");
-                incompleteWork = pending.workLeft;
-
                 for (int i = 0; i < 30 && (first == null || second == null); i++)
                 {
                     Pawn worker = PawnGenerator.GeneratePawn(PawnKindDefOf.Colonist, Faction.OfPlayer);
@@ -232,6 +224,17 @@ namespace AncientMedievalJapan.RiceCultivation.E2E
                 paddy.RefreshWater();
                 ctx.Assert(paddy.IsWet(paddy.PlotById(constructedId)),
                     "Reconnected water did not wet plot");
+                // Build the unfinished fixture *after* the pawn Construction
+                // period, not before: otherwise idle pawns naturally complete it
+                // during 6400 working ticks, long before disk saving begins.
+                Find.TickManager.CurTimeSpeed = TimeSpeed.Paused;
+                ctx.Require(paddy.AddRectangle(new CellRect(position.x + 6, position.z, 2, 2)),
+                    "Could not create unfinished save/reload fixture");
+                var pending = paddy.PlotAt(At(6, 0));
+                incompleteId = pending.id;
+                ctx.Require(paddy.AdvanceWork(incompleteId, pending.workAnchor, 1f),
+                    "Could not create resumable saved work");
+                incompleteWork = pending.workLeft;
                 if (first.CurJob != null) first.jobs.EndCurrentJob(JobCondition.InterruptForced, false);
                 // Test-created workers must not autonomously build the *other*
                 // unfinished plot while Pickle saves/reloads. That would make
