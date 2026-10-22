@@ -1,0 +1,11 @@
+<ModMetaData>
+  <name>AMJ Rice E2E Test Harness</name>
+  <author>AMJ Test</author>
+  <packageId>sucro.ancientmedievaljapan.ricecultivation.e2e</packageId>
+  <supportedVersions><li>1.6</li></supportedVersions>
+  <modDependencies>
+    <li><packageId>sucro.ancientmedievaljapan.ricecultivation</packageId><displayName>AMJ Rice Cultivation</displayName></li>
+    <li><packageId>rimworks.pickle</packageId><displayName>Pickle</displayName></li>
+    <li><packageId>rimworks.quickstarts</packageId><displayName>Quickstarts</displayName></li>
+  </modDependencies>
+</ModMetaData>
