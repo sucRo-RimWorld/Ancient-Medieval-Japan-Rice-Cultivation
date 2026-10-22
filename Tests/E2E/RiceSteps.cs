@@ -233,7 +233,15 @@ namespace AncientMedievalJapan.RiceCultivation.E2E
                 ctx.Assert(paddy.IsWet(paddy.PlotById(constructedId)),
                     "Reconnected water did not wet plot");
                 if (first.CurJob != null) first.jobs.EndCurrentJob(JobCondition.InterruptForced, false);
-                Find.TickManager.CurTimeSpeed = prior;
+                // Test-created workers must not autonomously build the *other*
+                // unfinished plot while Pickle saves/reloads. That would make
+                // comparison to its pre-save work snapshot a false failure.
+                first.Destroy(DestroyMode.Vanish);
+                second.Destroy(DestroyMode.Vanish);
+                Find.TickManager.CurTimeSpeed = TimeSpeed.Paused;
+                Log.Message("AMJR_NATIVE16_PENDING_BEFORE_SAVE id=" + incompleteId +
+                    " left=" + paddy.PlotById(incompleteId).workLeft +
+                    " complete=" + paddy.PlotById(incompleteId).complete);
                 Log.Message("AMJR_NATIVE16_BEFORE_SAVE_OK");
             });
         }
@@ -253,9 +261,15 @@ namespace AncientMedievalJapan.RiceCultivation.E2E
                 var pending = manager.PlotById(incompleteId);
                 ctx.Require(finished != null && partial != null && pending != null,
                     "Unique plot IDs did not persist");
+                Log.Message("AMJR_NATIVE16_PENDING_AFTER_RELOAD id=" + pending.id +
+                    " left=" + pending.workLeft + " expected=" + incompleteWork +
+                    " complete=" + pending.complete + " others=" +
+                    finished.complete + "/" + partial.complete);
                 ctx.Assert(finished.complete && partial.complete && !pending.complete &&
                     Math.Abs(pending.workLeft - incompleteWork) < 0.01f,
-                    "Plot work progress/completion did not persist");
+                    "Plot work progress/completion did not persist: current=" +
+                    pending.workLeft + " expected=" + incompleteWork +
+                    " complete=" + pending.complete);
                 var riceZone = map.zoneManager.ZoneAt(position) as Zone_Growing;
                 ctx.Require(riceZone != null && riceZone.CellCount == 9 &&
                     riceZone.GetPlantDefToGrow().defName == "Plant_Rice",
