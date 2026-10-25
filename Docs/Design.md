@@ -4,6 +4,8 @@
 **状態:** 作者承認は§1（B案を含む）。§2〜4は初版推奨技術仕様。**このリポジトリで実装進行中。1.6 DLL同梱・限定した実ゲーム検証がVanilla／Grains併用ともPASS。公開・数値バランス・外観採用は未確認。** 旧比較資料§6〜13は[Project原資料](https://github.com/sucRo-RimWorld/Ancient-Medieval-Japan-Project/blob/main/Docs/Research/RicePaddyDesign-2026-10-21.md)を履歴参照。  
 **原則:** [Project Architecture](https://github.com/sucRo-RimWorld/Ancient-Medieval-Japan-Project/blob/main/Docs/Architecture.md)、[Grains Design](https://github.com/sucRo-RimWorld/Ancient-Medieval-Japan-Grains/blob/main/Docs/Design.md)、[Waterworks Design](https://github.com/sucRo-RimWorld/Ancient-Medieval-Japan-Waterworks/blob/main/Docs/Design.md)。確定設計と実装はこの所有リポジトリを正本とする。Projectは先行技術研究と連携情報を持つ。
 
+**2026-10-25 作者決定 — 水田の数値調整とMO任意の境界:** 将来採用する水田造成工数・資材・水源接続の利点・`Plant_Rice`の水田専用生育／収量補正・可食米に至る総労働・食料供給は、**MO＋Agriculture＋Waterworks＋Rice Cultivation（関連AMJ環境を含む）**の統合環境で主に評価する。MOは水田の必須依存ではないし、MO原本値がそのまま水田の妥当値を決めるわけではない。既存の**Waterworks必須・Agriculture任意**契約と、Waterworks＋RiceだけのVanilla `Plant_Rice`栽培・収穫・水田区画の造成・給水という基本機能と進行経路は維持する。Vanilla／Agricultureなし・MOなしの構成で、MO経路と同等の収量効率・研究速度・材料コストを実現するための**別の水田数値設計や重複PlantDef**は追加しない。施工不能、区画消失、栽培不能、参照欠落、水利破綻等の実機能不良はどの対応構成でも修正対象。元土壌肥沃度を保持する既存決定、区画単位自動給水、無手動落水、現在の実装と開発用テストは変えない。**現時点で造成工数・資材・水田稲補正の数値は未承認**であり、この方針だけで定数・Patch・研究・製品依存・テスト条件を追加しない。根拠：[Project Architecture](https://github.com/sucRo-RimWorld/Ancient-Medieval-Japan-Project/blob/main/Docs/Architecture.md#2026-10-25-author-approved-amj-numeric-balance-and-support-profiles)。
+
 ## 1. 確定した方針（作者承認 2026-10-21）
 
 1. Rice Cultivation は **AMJ Waterworks を必須依存**とする。以前の「Waterworks任意連携」は撤回。Waterworks自身はRice Cultivationに依存しない。水路の自然水取水・掘削・接続判定はWaterworksが担当し、Rice Cultivationは水田造成・**区画別の自動給水状態**・水面描画・稲への栽培効果を担当する。
