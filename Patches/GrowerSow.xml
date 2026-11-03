@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Patch>
+  <!-- Minimal Vanilla GrowerSow override; no duplicate job or growing-zone Def.
+       Restricted only in WorkGiver_PaddyRiceOnlySow for completed paddy cells. -->
+  <Operation Class="PatchOperationReplace">
+    <xpath>Defs/WorkGiverDef[defName="GrowerSow"]/giverClass</xpath>
+    <value>
+      <giverClass>AncientMedievalJapan.RiceCultivation.WorkGiver_PaddyRiceOnlySow</giverClass>
+    </value>
+  </Operation>
+</Patch>
