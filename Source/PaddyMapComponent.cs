@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using AncientMedievalJapan.Waterworks;
 using RimWorld;
 using Verse;
+using Verse.AI;
 
 namespace AncientMedievalJapan.RiceCultivation
 {
@@ -172,6 +173,20 @@ namespace AncientMedievalJapan.RiceCultivation
 
         private void FinishPlot(PaddyPlot plot)
         {
+            // A sow job may have been assigned before the last construction tick.
+            // Cancel only still-pending non-rice sow jobs inside this completed
+            // plot; jobs already planting a live crop prevent construction
+            // completion via IsClearForConstruction.
+            foreach (Pawn pawn in map.mapPawns.AllPawnsSpawned)
+            {
+                Job pending = pawn.CurJob;
+                if (pending != null && pending.def == JobDefOf.Sow &&
+                    pending.plantDefToSow != null &&
+                    pending.plantDefToSow.defName != "Plant_Rice" &&
+                    plot.Bounds.Contains(pending.targetA.Cell))
+                    pawn.jobs.EndCurrentJob(JobCondition.InterruptForced, false);
+            }
+
             // Never modify or merge any existing Zone, including partial overlap.
             foreach (IntVec3 c in plot.Bounds)
                 if (map.zoneManager.ZoneAt(c) != null) { DirtyVisual(plot); RefreshWater(); return; }

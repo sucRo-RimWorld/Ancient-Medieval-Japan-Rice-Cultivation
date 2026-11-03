@@ -196,6 +196,37 @@ namespace AncientMedievalJapan.RiceCultivation.E2E
                 ctx.Require(zone != null && zone.CellCount == 9 &&
                     zone.GetPlantDefToGrow().defName == "Plant_Rice",
                     "Completed plot missing standard Vanilla rice Zone");
+                var sowGiver = DefDatabase<WorkGiverDef>.GetNamed("GrowerSow").Worker
+                    as WorkGiver_Scanner;
+                ctx.Require(sowGiver != null &&
+                    sowGiver.GetType() == typeof(WorkGiver_PaddyRiceOnlySow),
+                    "Rice-only sow guard not installed in real WorkGiverDef");
+                ctx.Require(paddy.PlotAt(At(3, 0)).complete &&
+                    !paddy.IsWet(paddy.PlotAt(At(3, 0))),
+                    "Expected completed dry partial paddy fixture");
+                ctx.Assert(sowGiver.JobOnCell(first, At(3, 0), true) == null,
+                    "Non-rice sow job assigned on completed dry paddy");
+                zone.SetPlantDefToGrow(ThingDefOf.Plant_Potato);
+                ctx.Assert(sowGiver.JobOnCell(first, position, true) == null,
+                    "Non-rice sow job assigned on completed wet paddy");
+                zone.SetPlantDefToGrow(DefDatabase<ThingDef>.GetNamed("Plant_Rice"));
+                ctx.Assert(zone.GetPlantDefToGrow().defName == "Plant_Rice",
+                    "Paddy zone setting was not preserved/restored");
+
+                // A normal growing zone immediately outside either paddy
+                // must behave exactly like Vanilla's original sow WorkGiver.
+                var field = new Zone_Growing(map.zoneManager);
+                map.zoneManager.RegisterZone(field);
+                field.AddCell(At(5, 0));
+                field.SetPlantDefToGrow(ThingDefOf.Plant_Potato);
+                ctx.Require(paddy.PlotAt(At(5, 0)) == null,
+                    "Ordinary field unexpectedly inside a paddy");
+                Job plain = new WorkGiver_GrowerSow().JobOnCell(first, At(5, 0), true);
+                Job guarded = sowGiver.JobOnCell(first, At(5, 0), true);
+                ctx.Assert((plain == null && guarded == null) ||
+                    (plain != null && guarded != null && plain.def == guarded.def),
+                    "Normal growing-zone sowing diverged from Vanilla");
+                Log.Message("AMJR_RICE_ONLY_SOW_GUARD_PASS");
                 ctx.Assert(map.terrainGrid.TopTerrainAt(position) == TerrainDefOf.Soil,
                     "Original soil was replaced");
                 paddy.RefreshWater();
@@ -218,6 +249,10 @@ namespace AncientMedievalJapan.RiceCultivation.E2E
                 paddy.RefreshWater();
                 ctx.Assert(!paddy.IsWet(paddy.PlotById(constructedId)),
                     "Disconnected natural water left plot wet");
+                zone.SetPlantDefToGrow(ThingDefOf.Plant_Potato);
+                ctx.Assert(sowGiver.JobOnCell(first, position, true) == null,
+                    "Water disconnection allowed a non-rice sow job");
+                zone.SetPlantDefToGrow(DefDatabase<ThingDef>.GetNamed("Plant_Rice"));
                 map.terrainGrid.SetTerrain(source,
                     DefDatabase<TerrainDef>.GetNamed("WaterMovingShallow"));
                 map.GetComponent<CanalMapComponent>().Recalculate();
@@ -282,6 +317,11 @@ namespace AncientMedievalJapan.RiceCultivation.E2E
                     potato.GetPlantDefToGrow() == ThingDefOf.Plant_Potato &&
                     map.zoneManager.ZoneAt(At(4, 0)) == null,
                     "Preexisting partial growing zone changed on load");
+                Zone_Growing normal = map.zoneManager.ZoneAt(At(5, 0)) as Zone_Growing;
+                ctx.Assert(normal != null && normal.CellCount == 1 &&
+                    normal.GetPlantDefToGrow() == ThingDefOf.Plant_Potato &&
+                    manager.PlotAt(At(5, 0)) == null,
+                    "Ordinary growing zone not preserved outside paddy");
                 ctx.Assert(map.terrainGrid.TopTerrainAt(position) == TerrainDefOf.Soil,
                     "Soil did not survive save/reload");
                 water.Recalculate();
