@@ -83,6 +83,8 @@
 
 **静的計算と未承認候補：** [施工・労働効率の試算](Balance/ConstructionWorkReview-20261022.md#5-2026-11-03-水田省力化目標に対する収支比較未承認数値)。Agricultureの[作物・水田統合比較](https://github.com/sucRo-RimWorld/Ancient-Medieval-Japan-Agriculture/blob/main/Docs/Balance/Crops/IntegratedNutritionAndPaddyAudit_20261103.md)と整合させる。
 
+**2026-11-03 更新：** アワ収量24・穀粒Nutrition0.07・水田収量+3の統合感度評価は[施工・総労働比較§6](Balance/ConstructionWorkReview-20261022.md#6-2026-11-03-再評価アワ24可食nutrition007水田3の統合比較と工事速度感度)を参照。先行比較§5で仮置きした播種/収穫Work370に対して、公開Vanilla PlantBaseに420相当の記述があるため**370・420を両方試算**し、実ロード1.6値を確認するまで係数を最終決定しない。**アワ24・穀類Nutrition0.07・水田+3はいずれも比較候補であり実装済みではない。**
+
 ## 5. 実装開始前の残条件と初回受入
 
 **作者承認済み：** §1と**初回は自動給水・手動給水／落水を置かず、水田操作を最小化しつつ、ポーンによる施工Job（B案）を残す方針**。上記§2〜4のクラス構成・UI・演出・Job・補正率などは実装設計の推奨候補で、作者が個別承認した数値ではない。§6〜13の手動水口・落水・施工細分化案は過去の技術比較としてのみ参照し、初版の正本にしない。
